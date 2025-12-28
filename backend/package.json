@@ -2,11 +2,12 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "index.ts",
   "type": "module",
   "scripts": {
-    "start": "ts-node index.ts",
-    "build": "echo 'Build complete: No transpilation needed for pure JS'",
+    "start": "node --experimental-strip-types index.ts",
+    "build": "echo 'Using Node 22 native type stripping''",
+    "dev": "nodemon --exec node --experimental-strip-types index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
