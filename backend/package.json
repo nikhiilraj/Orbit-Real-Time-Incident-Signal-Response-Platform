@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "ts-node index.ts",
+    "build": "echo 'Build complete: No transpilation needed for pure JS'",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
