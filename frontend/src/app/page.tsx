@@ -131,7 +131,8 @@ export default function Dashboard() {
     if (!isAdminMode) return;
     setIsVerifying(true);
     try {
-      const res = await fetch(`http://localhost:3000/api/incidents/${id}/status`, {
+      // ✅ CHANGED: Pointing to your live Render Backend
+      const res = await fetch(`https://orbit-real-time-incident-signal-response-qimq.onrender.com/api/incidents/${id}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'verified' }),
@@ -146,7 +147,8 @@ export default function Dashboard() {
 
   const saveNotes = async (id: string, notes: string) => {
     if (!isAdminMode) return;
-    await fetch(`http://localhost:3000/api/incidents/${id}/notes`, {
+    // ✅ CHANGED: Pointing to your live Render Backend
+    await fetch(`https://orbit-real-time-incident-signal-response-qimq.onrender.com/api/incidents/${id}/notes`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ notes }),
@@ -268,9 +270,7 @@ export default function Dashboard() {
                     <div className={`px-2 py-1 rounded text-[8px] font-black uppercase tracking-tighter ${inc.severity === 'high' ? 'bg-red-500 text-white' : 'bg-white/10 text-white/60'}`}>
                       {inc.severity} Priority
                     </div>
-                    <div className="text-[9px] font-bold text-white/20 font-mono italic">
-                      {new Date(inc.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </div>
+                    <div className="text-[9px] font-bold text-white/20 font-mono italic">{new Date(inc.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                   </div>
                   <h4 className="font-black text-sm uppercase italic tracking-tight group-hover:text-red-500 transition-colors">{inc.type}</h4>
                   {inc.status === 'verified' && (

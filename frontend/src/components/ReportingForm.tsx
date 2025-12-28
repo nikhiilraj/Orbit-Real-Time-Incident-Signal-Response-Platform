@@ -61,7 +61,7 @@ export default function ReportingForm({ onClose }: { onClose: () => void }) {
           media_url: mediaUrl,
         };
 
-        const res = await fetch('http://localhost:3000/api/incidents', {
+        const res = await fetch( `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/incidents`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
