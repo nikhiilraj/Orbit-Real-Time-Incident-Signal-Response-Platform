@@ -14,6 +14,9 @@ import AuthModal from '@/components/AuthModal';
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN!;
 
+// --- PRODUCTION CONSTANT ---
+const BACKEND_URL = "https://orbit-real-time-incident-signal-response-qimq.onrender.com";
+
 const parsePoint = (pointStr: string): [number, number] => {
   if (!pointStr || pointStr.startsWith('0101')) return [85.1, 25.6];
   const match = pointStr.match(/POINT\s?\(([-+]?\d*\.?\d+)\s+([-+]?\d*\.?\d+)\)/);
@@ -74,12 +77,20 @@ export default function Dashboard() {
     });
 
     mapRef.current.on('load', loadData);
-    return () => mapRef.current?.remove();
+    
+    // ✅ Fix: Use curly braces to avoid implicit return of Map object
+    return () => {
+      mapRef.current?.remove();
+    };
   }, [isAdminMode]);
 
   useEffect(() => {
     const channel = supabase.channel('dispatch_v2').on('postgres_changes', { event: '*', schema: 'public', table: 'incidents' }, loadData).subscribe();
-    return () => { supabase.removeChannel(channel); };
+    
+    // ✅ Fix: Return void
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   useEffect(() => {
@@ -87,9 +98,11 @@ export default function Dashboard() {
     const center = mapRef.current.getCenter();
 
     const syncMarkers = () => {
+      if (!mapRef.current) return;
+      const currentCenter = mapRef.current.getCenter();
       incidents.forEach((inc) => {
         const coords = parsePoint(inc.location);
-        const from = [center.lng, center.lat];
+        const from = [currentCenter.lng, currentCenter.lat];
         const dist = Math.sqrt(Math.pow(from[0]-coords[0], 2) + Math.pow(from[1]-coords[1], 2)) * 111;
         const isWithinRadius = dist <= radiusFilter;
 
@@ -114,7 +127,6 @@ export default function Dashboard() {
           const marker = new mapboxgl.Marker(el).setLngLat(coords).addTo(mapRef.current!);
           el.addEventListener('click', () => {
             setSelectedIncident(inc);
-            // On mobile, switch to feed to show incident details
             if (window.innerWidth < 768) setMobileTab('feed');
           });
           markersRef.current[inc.id] = marker;
@@ -124,15 +136,19 @@ export default function Dashboard() {
 
     syncMarkers();
     mapRef.current.on('moveend', syncMarkers);
-    return () => mapRef.current?.off('moveend', syncMarkers);
+    
+    // ✅ Fix: Prevents "EffectCallback" error by not returning the Map instance
+    return () => {
+      mapRef.current?.off('moveend', syncMarkers);
+    };
   }, [incidents, radiusFilter]);
 
   const handleVerify = async (id: string) => {
     if (!isAdminMode) return;
     setIsVerifying(true);
     try {
-      // ✅ CHANGED: Pointing to your live Render Backend
-      const res = await fetch(`https://orbit-real-time-incident-signal-response-qimq.onrender.com/api/incidents/${id}/status`, {
+      // ✅ Updated to your live Render URL
+      const res = await fetch(`${BACKEND_URL}/api/incidents/${id}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'verified' }),
@@ -147,8 +163,8 @@ export default function Dashboard() {
 
   const saveNotes = async (id: string, notes: string) => {
     if (!isAdminMode) return;
-    // ✅ CHANGED: Pointing to your live Render Backend
-    await fetch(`https://orbit-real-time-incident-signal-response-qimq.onrender.com/api/incidents/${id}/notes`, {
+    // ✅ Updated to your live Render URL
+    await fetch(`${BACKEND_URL}/api/incidents/${id}/notes`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ notes }),
@@ -157,8 +173,6 @@ export default function Dashboard() {
 
   return (
     <main className="flex flex-col md:flex-row h-screen w-screen bg-black text-white overflow-hidden font-sans">
-      
-      {/* SIDEBAR / FEED: Responsive Visibility */}
       <div className={`
         ${mobileTab === 'feed' ? 'flex' : 'hidden'} 
         md:flex flex-col z-20 shadow-2xl relative
@@ -283,13 +297,11 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* MAP VIEWPORT: Responsive Visibility */}
       <div 
         ref={mapContainerRef} 
         className={`flex-1 h-full relative ${mobileTab === 'map' ? 'block' : 'hidden md:block'}`} 
       />
 
-      {/* MOBILE TAB NAVIGATION (Requirement: UI/UX Clarity) */}
       <div className="md:hidden fixed bottom-0 left-0 w-full bg-slate-900/90 backdrop-blur-xl border-t border-white/10 flex justify-around items-center p-3 z-50">
         <button 
           onClick={() => setMobileTab('map')} 
@@ -317,7 +329,6 @@ export default function Dashboard() {
         </button>
       </div>
 
-      {/* DESKTOP FLOATING ACTION */}
       {!isAdminMode && (
         <button 
           onClick={() => setIsFormOpen(true)}
@@ -328,7 +339,6 @@ export default function Dashboard() {
         </button>
       )}
 
-      {/* OVERLAYS */}
       {isFormOpen && <ReportingForm onClose={() => setIsFormOpen(false)} />}
       {isAuthModalOpen && <AuthModal onClose={() => setIsAuthModalOpen(false)} onLoginSuccess={() => setIsAdminMode(true)} />}
     </main>
