@@ -39,14 +39,12 @@ app.patch('/api/incidents/:id/status', async (req, res) => {
 app.patch('/api/incidents/:id/notes', async (req, res) => {
   const { id } = req.params;
   const { notes } = req.body;
-
   try {
     const { data, error } = await supabase
       .from('incidents')
       .update({ internal_notes: notes })
       .eq('id', id)
       .select();
-
     if (error) throw error;
     res.status(200).json(data[0]);
   } catch (err: any) {
