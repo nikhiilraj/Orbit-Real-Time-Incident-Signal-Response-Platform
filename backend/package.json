@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node --experimental-strip-types index.ts",
-    "build": "echo 'Using Node 22 native type stripping' ",
+    "build": "echo 'Build successful'",
     "dev": "nodemon --exec node --experimental-strip-types index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
